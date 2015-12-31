@@ -14283,11 +14283,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d6d23c92731bf6043b816f2d44481203, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  smoothTime: 0.7
-  distance: 10
-  phi: 0
-  theta: 0
-  rotationSpeed: 1
+  m_smoothTime: 0.7
+  m_phi: 0
+  m_theta: 0
+  m_rotationSpeed: 1
   m_InitalTarget: {fileID: 466679977}
   detectDuration: 1
 --- !u!1 &1756260554
