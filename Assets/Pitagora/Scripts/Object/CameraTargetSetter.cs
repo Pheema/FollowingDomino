@@ -4,17 +4,18 @@ using System.Collections;
 [RequireComponent(typeof(Rigidbody))]
 public class CameraTargetSetter : MonoBehaviour {
     // このドミノが倒れているか
-    float m_detectionStartTime = 1f;
+    float m_detectionStartTime;
     bool m_isFalled = false;
     CameraRigController m_cameraRigController;
 
     // デバッグ用
-    bool isDebug = true;
+    bool isDebug = false;
     Vector3 collPoint;
 
     void Start()
     {
         m_cameraRigController = Camera.main.transform.parent.GetComponent<CameraRigController>();
+        m_detectionStartTime = m_cameraRigController.detectionStartTime;
         if (isDebug)
         {
             GetComponent<Renderer>().material.color = Color.white;
