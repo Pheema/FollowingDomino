@@ -4,8 +4,18 @@ using System.Collections.Generic;
 
 public class CameraRigController : MonoBehaviour
 {
+    enum FOLLOWING_TYPE
+    {
+        NORMAL,
+        WEIGHTING
+    };
 
     #region Member variables
+
+    // 衝突イベントの重み付け
+    // NORMAL: 均一, WEIGHTING: 線形に重み付け
+    [SerializeField]
+    FOLLOWING_TYPE m_followingType = FOLLOWING_TYPE.NORMAL;
 
     // ターゲットに近づくまでの時間
     [SerializeField, Range(0f, 1f)]
@@ -75,11 +85,42 @@ public class CameraRigController : MonoBehaviour
     {
         // 衝突イベントの平均位置を取得
         m_targetPos = Vector3.zero;
-        foreach (var val in recentCollEvents)
+        
+        switch(m_followingType)
         {
-            m_targetPos += val.Value.position;
+            case FOLLOWING_TYPE.NORMAL:
+                foreach (var val in recentCollEvents)
+                {
+                    m_targetPos += val.Value.position;
+                }
+                m_targetPos /= recentCollEvents.Count;
+                break;
+
+            case FOLLOWING_TYPE.WEIGHTING:
+                // 最新のデータは重み1
+                m_targetPos += recentCollEvents.Peek().Value.position;
+                
+                if (recentCollEvents.Count > 1)
+                {
+                    float weightSum = 1f;
+                    foreach (var val in recentCollEvents)
+                    {
+                        // 最新の衝突データは重み付け平均に含めない
+                        // if (Mathf.Approximately(val.Key, recentCollEvents.Peek().Key)) continue;
+                        float elapsedTime = Time.time - val.Key;
+                        float weight = Mathf.Max(0f, 
+                                Mathf.Min(
+                                    2f * elapsedTime / m_detectDuration, 
+                                    2f * (1f - elapsedTime / m_detectDuration)
+                                )
+                            );
+                        m_targetPos += weight * val.Value.position;
+                        weightSum += weight;
+                    }
+                    m_targetPos /= weightSum;
+                }
+                break;
         }
-        m_targetPos /= recentCollEvents.Count;
 
         transform.position = Vector3.SmoothDamp(transform.position, m_targetPos, ref m_cameraVelocity, m_smoothTime);
         transform.rotation = Quaternion.Euler(m_theta, -m_phi, 0f);
